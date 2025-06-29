@@ -69,9 +69,7 @@ export default function ProductModal({
   // Gallery state
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
 
-  // Touch/Swipe state
-  const [touchStart, setTouchStart] = useState<number | null>(null)
-  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  // Modal ref (без touch/swipe функций)
   const modalRef = useRef<HTMLDivElement>(null)
 
   // Получаем текущий товар
@@ -120,32 +118,7 @@ export default function ProductModal({
     }
   }, [isOpen])
 
-  // Touch handlers для swipe
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientY)
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientY)
-  }
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
-    
-    const distance = touchStart - touchEnd
-    const isSwipe = Math.abs(distance) > 50
-    
-    if (isSwipe) {
-      if (distance > 0) {
-        // Swipe up - следующий товар
-        onNavigate('down')
-      } else {
-        // Swipe down - предыдущий товар
-        onNavigate('up')
-      }
-    }
-  }
+  // 🚫 Touch handlers убраны - swipe отключен на мобильных для удобства использования кнопок
 
   if (!isOpen || !product) return null
 
@@ -211,13 +184,10 @@ export default function ProductModal({
         onClick={onClose}
       />
       
-      {/* Modal - оптимизированный для всех экранов */}
+              {/* Modal - оптимизированный для всех экранов */}
       <div 
         ref={modalRef}
         className="relative w-full h-full sm:max-w-4xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl sm:h-auto sm:max-h-[90vh] md:max-h-[85vh] sm:mx-4 md:mx-6 lg:mx-8 bg-white sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         
         {/* Navigation Buttons - чистый белый с тенью */}
@@ -243,10 +213,7 @@ export default function ProductModal({
           <X size={16} className="sm:w-5 sm:h-5 text-gray-600" />
         </button>
 
-        {/* Swipe indicator - минималистичный */}
-        <div className="md:hidden absolute top-2 left-1/2 -translate-x-1/2 z-10 bg-gray-100/80 backdrop-blur-sm px-2 py-1 rounded-full text-xs text-gray-600">
-          Свайп ↕
-        </div>
+        {/* 🚫 SWIPE ОТКЛЮЧЕН - чтобы не мешать кнопкам на мобильных */}
 
         {/* Left Side - Images - 🖼️ ПОКАЗЫВАЕМ ПОЛНОЕ ИЗОБРАЖЕНИЕ */}
         <div className="flex-1 relative bg-gradient-to-br from-gray-50 to-gray-100 min-h-[50vh] sm:min-h-[55vh] md:min-h-[65vh] lg:min-h-[70vh] xl:min-h-[75vh]">
