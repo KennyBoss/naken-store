@@ -105,20 +105,54 @@ export default function ProductModal({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose, onNavigate])
 
-  // Блокируем скролл когда модалка открыта
+  // 🔒 МОЩНАЯ блокировка скролла когда модалка открыта
   useEffect(() => {
     if (isOpen) {
+      // Сохраняем текущее положение скролла
+      const scrollY = window.scrollY
+      
+      // Блокируем скролл
       document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset'
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+      
+      // Предотвращаем touchmove на всем документе
+      const preventTouch = (e: TouchEvent) => {
+        e.preventDefault()
+      }
+      
+      document.addEventListener('touchmove', preventTouch, { passive: false })
+      
+      return () => {
+        // Восстанавливаем скролл
+        const body = document.body
+        const scrollY = body.style.top
+        body.style.overflow = ''
+        body.style.position = ''
+        body.style.top = ''
+        body.style.width = ''
+        
+        // Возвращаем позицию скролла
+        window.scrollTo(0, parseInt(scrollY || '0') * -1)
+        
+        // Убираем блокировку touchmove
+        document.removeEventListener('touchmove', preventTouch)
+      }
     }
   }, [isOpen])
 
-  // 🚫 Touch handlers убраны - swipe отключен на мобильных для удобства использования кнопок
+  // 🚫 Touch handlers для предотвращения скролла фона
+  const handleBackdropTouch = (e: React.TouchEvent) => {
+    // Полностью блокируем touch на backdrop
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleModalTouch = (e: React.TouchEvent) => {
+    // Останавливаем всплытие, но разрешаем внутренний скролл
+    e.stopPropagation()
+  }
 
   if (!isOpen || !product) return null
 
@@ -182,12 +216,16 @@ export default function ProductModal({
       <div 
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
+        onTouchMove={handleBackdropTouch}
+        onTouchStart={handleBackdropTouch}
       />
       
               {/* Modal - оптимизированный для всех экранов */}
       <div 
         ref={modalRef}
         className="relative w-full h-full sm:max-w-4xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl sm:h-auto sm:max-h-[90vh] md:max-h-[85vh] sm:mx-4 md:mx-6 lg:mx-8 bg-white sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
+        onTouchMove={handleModalTouch}
+        onTouchStart={handleModalTouch}
       >
         
         {/* Navigation Buttons - чистый белый с тенью */}
