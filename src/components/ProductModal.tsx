@@ -266,10 +266,13 @@ export default function ProductModal({
                   />
                 </div>
                 
-                {/* Mobile tap indicator - улучшенный дизайн */}
+                {/* Mobile tap indicator - в стиле сайта */}
                 <div className="md:hidden absolute bottom-2 right-2 z-10">
-                  <div className="bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg">
-                    🔍 Увеличить
+                  <div className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg hover:from-teal-600 hover:to-cyan-600 hover:shadow-xl transform hover:scale-105 transition-all duration-200 border border-white/20">
+                    <span className="flex items-center gap-1">
+                      <span>🔍</span>
+                      <span>Увеличить</span>
+                    </span>
                   </div>
                 </div>
                 
