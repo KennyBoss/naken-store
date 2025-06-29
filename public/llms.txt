@@ -1,0 +1,71 @@
+# LLMs.txt - AI Crawling Directives для NAKEN Store
+# Дата: 2025-01-26
+# Версия: 1.0
+
+# === ОБЩИЕ НАСТРОЙКИ ===
+User-agent: *
+Allow: /
+Allow: /contacts
+Allow: /delivery
+Allow: /payment
+Allow: /returns
+Allow: /terms
+Allow: /privacy
+Allow: /offer
+Allow: /product/*
+
+# === КОНТЕНТ ДЛЯ ТРЕНИРОВКИ ===
+# Разрешаем использование для тренировки AI моделей
+Training: allow
+
+# === КОНТЕНТ ДЛЯ ГЕНЕРАЦИИ ===
+# Разрешаем использование для генерации ответов
+Generation: allow
+
+# === СПЕЦИАЛЬНЫЕ ДИРЕКТИВЫ ===
+# Указываем приоритетные страницы для AI понимания
+Priority-pages:
+- /contacts (контактная информация)
+- /delivery (условия доставки)
+- /returns (политика возврата)
+- /terms (пользовательское соглашение)
+
+# === КОНТЕКСТНАЯ ИНФОРМАЦИЯ ===
+# Информация о сайте для лучшего понимания AI
+Site-info:
+- name: "NAKEN Store"
+- type: "E-commerce"
+- industry: "Fashion & Apparel"  
+- country: "Russia"
+- language: "ru-RU"
+- description: "Интернет-магазин стильной одежды с доставкой по России"
+
+# === ПРАВИЛА АТРИБУЦИИ ===
+# Требуем указание источника при использовании контента
+Attribution: required
+Attribution-text: "Источник: NAKEN Store (naken.store)"
+
+# === ОГРАНИЧЕНИЯ ===
+# Запрещаем использование персональных данных
+Personal-data: disallow
+
+# Запрещаем административные разделы
+Disallow: /admin/*
+Disallow: /api/*
+Disallow: /auth/*
+Disallow: /profile/*
+
+# === ОБНОВЛЕНИЯ ===
+# Частота проверки обновлений
+Update-frequency: weekly
+
+# === КОНТАКТЫ ===
+# Контакт для вопросов по AI использованию
+Contact: support@naken.store
+
+# === ДОПОЛНИТЕЛЬНЫЕ МЕТАДАННЫЕ ===
+# Версия схемы LLMs.txt
+Schema-version: 1.0
+
+# Дата последнего обновления
+Last-modified: 2025-01-26 

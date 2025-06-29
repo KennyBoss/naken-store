@@ -1,0 +1,114 @@
+User-agent: *
+Allow: /
+
+# === ВАЖНЫЕ СТРАНИЦЫ ДЛЯ ИНДЕКСАЦИИ 2025 ===
+Allow: /contacts
+Allow: /delivery
+Allow: /payment
+Allow: /returns
+Allow: /terms
+Allow: /privacy
+Allow: /offer
+Allow: /product/
+
+# === ИЗОБРАЖЕНИЯ И МЕДИА ===
+# Разрешаем все современные форматы изображений
+Allow: /images/
+Allow: /uploads/
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.webp$
+Allow: /*.avif$
+Allow: /*.svg$
+
+# === ЗАПРЕЩЕННЫЕ РАЗДЕЛЫ ===
+Disallow: /admin/
+Disallow: /admin-login
+Disallow: /api/
+Disallow: /auth/
+Disallow: /profile/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /account/
+Disallow: /test*
+
+# === СИСТЕМНЫЕ ФАЙЛЫ ===
+Disallow: /_next/
+Disallow: /uploads/thumbnails/
+Disallow: /*?*sort=
+Disallow: /*?*filter=
+Disallow: /*?*page=
+Disallow: /search?*
+
+# === AI БОТЫ И ГЕНЕРАТИВНЫЙ ПОИСК ===
+# Разрешаем Google AI для AI Overviews
+User-agent: Google-Extended
+Allow: /
+
+# Разрешаем ChatGPT для индексации
+User-agent: ChatGPT-User
+Allow: /
+
+# Разрешаем Claude для веб-поиска
+User-agent: Claude-Web
+Allow: /
+
+# Ограничиваем агрессивных AI тренировочных ботов
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+# === ПОИСКОВЫЕ БОТЫ ===
+User-agent: Googlebot
+Crawl-delay: 1
+Allow: /uploads/*.jpg
+Allow: /uploads/*.png
+Allow: /uploads/*.webp
+
+User-agent: Yandex
+Crawl-delay: 2
+Allow: /uploads/*.jpg
+Allow: /uploads/*.png
+Allow: /uploads/*.webp
+
+# === СОЦИАЛЬНЫЕ СЕТИ ===
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+# === БЛОКИРУЕМ АГРЕССИВНЫХ БОТОВ ===
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# === SITEMAP ===
+Sitemap: https://naken.store/sitemap.xml
+
+# === ДОПОЛНИТЕЛЬНЫЕ ДИРЕКТИВЫ ===
+# Основное зеркало сайта
+Host: naken.store
+
+# Задержка между запросами
+Crawl-delay: 1 

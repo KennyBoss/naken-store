@@ -1,0 +1,435 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1d1d1f;
+  --accent: #000000;
+  --accent-foreground: #ffffff;
+  --muted: #f5f5f7;
+  --muted-foreground: #86868b;
+  --border: #e8e8ed;
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apple style buttons */
+.btn-primary {
+  @apply bg-black text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-800 transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 text-gray-900 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors;
+}
+
+.btn-outline {
+  @apply bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 transition-colors;
+}
+
+/* Cards */
+.card {
+  @apply bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow;
+}
+
+.card-hover {
+  @apply hover:shadow-xl transition-all duration-300;
+}
+
+/* Forms */
+.input {
+  @apply w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-400 transition-all;
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+/* Masonry Grid */
+.masonry-grid {
+  column-count: 2;
+  column-gap: 16px;
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .masonry-grid {
+    column-count: 3;
+    column-gap: 20px;
+  }
+  
+  .masonry-item {
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .masonry-grid {
+    column-count: 4;
+    column-gap: 24px;
+  }
+  
+  .masonry-item {
+    margin-bottom: 24px;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d1d6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8e8e93;
+}
+
+/* Современные кнопки */
+.btn-ghost {
+  @apply text-gray-600 hover:text-black px-4 py-2 rounded-md text-sm transition-all duration-200;
+}
+
+/* Современные инпуты */
+.input-modern {
+  @apply w-full px-4 py-3 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 bg-white;
+}
+
+.input-modern:focus {
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Карточки товаров */
+.product-card {
+  @apply bg-white rounded-lg overflow-hidden transition-all duration-300 hover:shadow-md;
+}
+
+.product-card-image {
+  @apply relative w-full bg-gray-50 overflow-hidden;
+}
+
+.product-card-content {
+  @apply p-4 space-y-2;
+}
+
+/* Минималистичная сетка товаров */
+.products-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .products-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Modern shadows */
+.shadow-soft {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.shadow-medium {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-large {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Hover effects */
+.hover-lift {
+  @apply transition-transform duration-300 hover:-translate-y-1;
+}
+
+.hover-scale {
+  @apply transition-transform duration-300 hover:scale-[1.02];
+}
+
+/* Text styles */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Badge styles */
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-black {
+  @apply bg-black text-white;
+}
+
+.badge-gray {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.badge-sale {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Container */
+.container-custom {
+  @apply max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Анимации */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out forwards;
+}
+
+/* Skeleton loader */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton {
+  @apply bg-gray-200 animate-pulse rounded;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Responsive text */
+.text-responsive {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+/*
+  ЗОЛОТОЙ СТАНДАРТ: НАДЕЖНАЯ CSS GRID СЕТКА
+  Используем CSS Grid для стабильного, ровного и предсказуемого отображения.
+  Работает идеально на всех устройствах. Никаких конфликтов.
+*/
+.masonry-grid {
+  display: grid;
+  gap: 1rem; /* Отступы между карточками */
+  width: 100%;
+  
+  /* Адаптивные колонки */
+  grid-template-columns: repeat(2, 1fr); /* 2 колонки по умолчанию */
+}
+
+.masonry-item {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* МОБИЛЬНЫЕ - 2 колонки для лучшего вида */
+@media (max-width: 639px) {
+  .masonry-grid {
+    gap: 0.75rem; /* Уменьшаем отступы на маленьких экранах */
+  }
+}
+
+/* БОЛЬШИЕ ПЛАНШЕТЫ - 3 колонки */
+@media (min-width: 1024px) {
+  .masonry-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* БОЛЬШИЕ ЭКРАНЫ - 4 колонки */
+@media (min-width: 1280px) {
+  .masonry-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Touch-friendly мобильные стили */
+@media (max-width: 767px) {
+  /* Увеличиваем размер touch targets */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Убираем hover эффекты на touch устройствах */
+  .group:hover .group-hover\:scale-110 {
+    transform: scale(1);
+  }
+  
+  /* Убираем анимации масштабирования для мобильных */
+  .hover\:scale-\[1\.02\]:hover,
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+}
+
+/* Smooth text truncation */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Стабилизация изображений в masonry */
+.masonry-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Принудительная видимость колонок - УДАЛЕНО, так как это для layout с columns, а не grid */
+/*
+.masonry-grid::before {
+  content: '';
+  width: 100%;
+  height: 1px;
+  display: block;
+  column-span: all;
+}
+*/
+
+/* Adaptive product grid */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+  }
+}
+
+/* Adaptive image containers */
+.product-image-container {
+  position: relative;
+  width: 100%;
+  background-color: #f8f8f8;
+  overflow: hidden;
+}
+
+.product-image-container::before {
+  content: '';
+  display: block;
+  padding-bottom: 133.33%; /* 3:4 aspect ratio по умолчанию */
+}
+
+.product-image-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Адаптивные контейнеры для разных пропорций */
+.product-image-container.ratio-square::before {
+  padding-bottom: 100%; /* 1:1 */
+}
+
+.product-image-container.ratio-landscape::before {
+  padding-bottom: 75%; /* 4:3 */
+}
+
+.product-image-container.ratio-portrait::before {
+  padding-bottom: 150%; /* 2:3 */
+}
+
+.product-image-container.ratio-wide::before {
+  padding-bottom: 56.25%; /* 16:9 */
+}
+
+

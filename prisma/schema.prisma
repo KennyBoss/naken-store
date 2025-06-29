@@ -1,0 +1,470 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Пользователи
+model User {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  phone         String?   @unique  // основной способ авторизации
+  phoneVerified DateTime?
+  password      String?   // для email/password аутентификации
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Отношения
+  accounts     Account[]
+  sessions     Session[]
+  orders       Order[]
+  cart         CartItem[]
+  reviews      Review[]
+  addresses    Address[]
+  wishlist     WishlistItem[]
+  authLogs     AuthLog[]
+  activities   UserActivity[]
+  
+  // Чат-система
+  chatSessions    ChatSession[]     // Чаты где пользователь клиент
+  assignedChats   ChatSession[]     @relation("AssignedChats") // Чаты назначенные админу/менеджеру
+  sentMessages    ChatMessage[]     // Отправленные сообщения
+
+  @@map("users")
+}
+
+model Size {
+  id          String    @id @default(cuid())
+  name        String    @unique // e.g., "S", "M", "L"
+  russianSize String    @unique // e.g., "46", "48", "50"
+  products    ProductSize[]
+  createdAt   DateTime  @default(now())
+
+  @@map("sizes")
+}
+
+model Color {
+  id        String    @id @default(cuid())
+  name      String    @unique // e.g., "Красный", "Синий"
+  hexCode   String    @unique // e.g., "#FF0000", "#0000FF"
+  products  Product[]
+  createdAt DateTime  @default(now())
+
+  @@map("colors")
+}
+
+// Промежуточная таблица для связи многие-ко-многим между Product и Size
+model ProductSize {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sizeId    String
+  size      Size     @relation(fields: [sizeId], references: [id], onDelete: Cascade)
+  stock     Int      @default(0) // Количество в наличии для конкретного размера
+  
+  @@unique([productId, sizeId])
+  @@map("product_sizes")
+}
+
+// NextAuth.js модели
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+// Товары
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String?  @unique // SEO-friendly URL
+  description String?
+  price       Float
+  salePrice   Float?
+  sku         String   @unique
+  stock       Int      @default(0)
+  images      String   // JSON массив изображений
+  
+  // Связи с размерами и цветом
+  sizes       ProductSize[]  // Многие ко многим с размерами
+  colorId     String?
+  color       Color?   @relation(fields: [colorId], references: [id])
+  
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Отношения
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  reviews     Review[]
+  wishlist    WishlistItem[]
+
+  @@map("products")
+}
+
+// Корзина
+model CartItem {
+  id        String @id @default(cuid())
+  quantity  Int    @default(1)
+  sizeId    String? // ID выбранного размера
+  createdAt DateTime @default(now())
+  
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  
+  @@unique([userId, productId, sizeId])
+  @@map("cart_items")
+}
+
+// Заказы
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique @default(cuid())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  status      String      @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELED
+  total       Float
+  
+  // Статус и данные платежа
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentId     String?   // ID платежа от платежной системы
+  paymentMethod String?   // tbank, yookassa, cash
+  paymentData   String?   // JSON с данными платежа
+  
+  shippingMethod String?
+  comment        String?
+
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId      String?
+  
+  items       OrderItem[]
+
+  // Связь с адресом доставки
+  shippingAddress   Address? @relation(fields: [shippingAddressId], references: [id], onDelete: SetNull)
+  shippingAddressId String?
+
+  @@map("orders")
+}
+
+// Товары в заказе
+model OrderItem {
+  id        String  @id @default(cuid())
+  quantity  Int
+  price     Float
+  size      String? // Выбранный размер
+  color     String? // Выбранный цвет
+  
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+
+  @@map("order_items")
+}
+
+// Адреса
+model Address {
+  id        String    @id @default(cuid())
+  name      String
+  street    String
+  city      String
+  state     String
+  zipCode   String
+  country   String
+  phone     String?
+  isDefault Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  orders    Order[]
+
+  @@map("addresses")
+}
+
+// Отзывы
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  
+  @@unique([userId, productId])
+  @@map("reviews")
+}
+
+// Избранное
+model WishlistItem {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  
+  @@unique([userId, productId])
+  @@map("wishlist_items")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING    // Ждет оплаты
+  PAID       // Оплачен успешно
+  FAILED     // Ошибка платежа
+  CANCELLED  // Отменен пользователем
+  EXPIRED    // Время на оплату истекло
+}
+
+// Коды авторизации (SMS/Email)
+model AuthCode {
+  id        String   @id @default(cuid())
+  type      String   // "SMS" или "EMAIL"
+  contact   String   // телефон или email
+  code      String   // код подтверждения
+  expires   DateTime // когда истекает
+  used      Boolean  @default(false) // использован ли код
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Для аналитики
+  @@map("auth_codes")
+}
+
+// Логи авторизации
+model AuthLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  type        String   // "SMS", "EMAIL"
+  identifier  String   // телефон или email
+  success     Boolean  @default(false)
+  errorReason String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  @@map("auth_logs")
+}
+
+// Активность пользователей
+model UserActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // 'page_view', 'product_view', 'add_to_cart', 'order'
+  details   String?  // JSON с деталями
+  createdAt DateTime @default(now())
+  
+  @@map("user_activities")
+}
+
+// Настройки сайта
+model SiteSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique // 'site_title', 'site_description', 'site_logo'
+  value       String   // Значение настройки
+  type        String   @default("text") // 'text', 'file', 'image'
+  category    String   @default("general") // 'general', 'seo', 'branding'
+  description String?  // Описание для админки
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("site_settings")
+}
+
+// Трекинг пиксели и счетчики
+model TrackingPixel {
+  id          String      @id @default(cuid())
+  name        String      // Название (например, "Яндекс.Метрика основной")
+  type        PixelType   // Тип пикселя
+  pixelId     String      // ID пикселя (например, "3663988" для Яндекс.Метрики)
+  code        String?     // Дополнительный код (для custom HTML/JS)
+  isActive    Boolean     @default(true)
+  placement   PixelPlacement @default(HEAD) // Где размещать код
+  description String?     // Описание назначения
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@map("tracking_pixels")
+}
+
+// === СИСТЕМА ОНЛАЙН ЧАТА ===
+
+// Чат-сессии
+model ChatSession {
+  id          String      @id @default(cuid())
+  sessionId   String      @unique @default(cuid()) // Публичный ID сессии
+  status      ChatStatus  @default(ACTIVE)
+  subject     String?     // Тема обращения
+  priority    ChatPriority @default(NORMAL)
+  
+  // Участники чата
+  userId      String?     // ID клиента (может быть анонимным)
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  assignedTo  String?     // ID назначенного менеджера/админа
+  assignedUser User?      @relation("AssignedChats", fields: [assignedTo], references: [id], onDelete: SetNull)
+  
+  // Метаданные
+  clientInfo  String?     // JSON с информацией о клиенте (браузер, IP и т.д.)
+  source      String      @default("website") // website, telegram, whatsapp
+  tags        String[]    @default([]) // Теги для категоризации
+  
+  // Временные метки
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  closedAt    DateTime?   // Когда был закрыт чат
+  lastActivity DateTime   @default(now()) // Последняя активность
+  
+  // Связи
+  messages    ChatMessage[]
+  
+  @@map("chat_sessions")
+}
+
+// Сообщения в чате
+model ChatMessage {
+  id          String      @id @default(cuid())
+  content     String      // Текст сообщения
+  messageType MessageType @default(TEXT)
+  attachments String?     // JSON массив прикрепленных файлов
+  
+  // Автор сообщения
+  senderId    String?     // ID отправителя (может быть null для системных)
+  sender      User?       @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  senderType  SenderType  // USER, ADMIN, SYSTEM
+  senderName  String?     // Имя отправителя (для анонимных клиентов)
+  
+  // Принадлежность к чату
+  sessionId   String
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // Статус сообщения
+  isRead      Boolean     @default(false)
+  readAt      DateTime?   // Когда было прочитано
+  isEdited    Boolean     @default(false)
+  editedAt    DateTime?   // Когда было отредактировано
+  
+  // Метаданные
+  metadata    String?     // JSON с дополнительными данными
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@map("chat_messages")
+}
+
+// === ENUMS ДЛЯ ЧАТА ===
+
+enum ChatStatus {
+  ACTIVE      // Активный чат
+  CLOSED      // Закрытый чат
+  WAITING     // Ожидает ответа клиента
+  TRANSFERRED // Передан другому оператору
+}
+
+enum ChatPriority {
+  LOW         // Низкий приоритет
+  NORMAL      // Обычный приоритет
+  HIGH        // Высокий приоритет
+  URGENT      // Срочный
+}
+
+enum MessageType {
+  TEXT        // Обычное текстовое сообщение
+  IMAGE       // Изображение
+  FILE        // Файл
+  SYSTEM      // Системное сообщение
+  TYPING      // Индикатор набора текста
+}
+
+enum SenderType {
+  USER        // Обычный пользователь/клиент
+  ADMIN       // Администратор
+  MANAGER     // Менеджер
+  SYSTEM      // Системное сообщение
+}
+
+// === ENUMS ДЛЯ ТРЕКИНГ ПИКСЕЛЕЙ ===
+
+enum PixelType {
+  YANDEX_METRIKA    // Яндекс.Метрика
+  GOOGLE_ANALYTICS  // Google Analytics
+  FACEBOOK_PIXEL    // Facebook Pixel
+  VK_PIXEL         // VK Pixel
+  GOOGLE_ADS       // Google Ads
+  YANDEX_DIRECT    // Яндекс.Директ
+  CUSTOM_HTML      // Произвольный HTML/JS код
+}
+
+enum PixelPlacement {
+  HEAD            // В <head> секции
+  BODY_START      // В начале <body>
+  BODY_END        // В конце <body>
+}
