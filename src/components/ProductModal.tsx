@@ -248,8 +248,8 @@ export default function ProductModal({
           Свайп ↕
         </div>
 
-        {/* Left Side - Images - оптимизированная адаптивная высота */}
-        <div className="flex-1 relative bg-gray-50 h-[35vh] sm:h-[40vh] md:h-[50vh] lg:h-[60vh] xl:h-[65vh] max-h-[500px] sm:max-h-[600px] md:max-h-[700px]">
+        {/* Left Side - Images - 🚀 УЛУЧШЕННОЕ ЗАПОЛНЕНИЕ ПРОСТРАНСТВА */}
+        <div className="flex-1 relative bg-gray-50 min-h-[50vh] sm:min-h-[55vh] md:min-h-[65vh] lg:min-h-[70vh] xl:min-h-[75vh]">
           {images.length > 0 ? (
             <>
               <div 
@@ -260,16 +260,19 @@ export default function ProductModal({
                   src={images[selectedImageIndex] || '/placeholder.jpg'}
                   alt={product.name}
                   fill
-                  className="object-contain"
+                  className="object-cover object-center hover:scale-105 transition-transform duration-300"
                   priority
                 />
                 
-                {/* Mobile tap indicator - убираем для экономии места */}
-                <div className="md:hidden absolute bottom-2 right-2">
-                  <div className="bg-black/40 text-white px-2 py-1 rounded text-xs">
-                    🔍
+                {/* Mobile tap indicator - улучшенный дизайн */}
+                <div className="md:hidden absolute bottom-2 right-2 z-10">
+                  <div className="bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg">
+                    🔍 Увеличить
                   </div>
                 </div>
+                
+                {/* Overlay gradient для лучшей читаемости */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-black/5 pointer-events-none"></div>
               </div>
               
 
