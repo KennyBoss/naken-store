@@ -274,20 +274,7 @@ export default function ProductModal({
               
 
 
-              {/* Image Indicators - очень маленькие на мобильных */}
-              {images.length > 1 && (
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-0.5 sm:gap-1 bg-black/20 backdrop-blur-sm rounded-full px-1.5 py-0.5 sm:px-2 sm:py-1">
-                  {images.map((_: any, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImageIndex(index)}
-                      className={`w-1 h-1 sm:w-1 sm:h-1 md:w-1.5 md:h-1.5 rounded-full transition-all ${
-                        selectedImageIndex === index ? 'bg-white w-1.5 sm:w-2 md:w-2.5' : 'bg-white/50'
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
+              {/* 🚀 ИСПРАВЛЕНО: Индикаторы только в галерее, не в карточке товара */}
             </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-100">
