@@ -248,21 +248,23 @@ export default function ProductModal({
           Свайп ↕
         </div>
 
-        {/* Left Side - Images - 🚀 УЛУЧШЕННОЕ ЗАПОЛНЕНИЕ ПРОСТРАНСТВА */}
-        <div className="flex-1 relative bg-gray-50 min-h-[50vh] sm:min-h-[55vh] md:min-h-[65vh] lg:min-h-[70vh] xl:min-h-[75vh]">
+        {/* Left Side - Images - 🖼️ ПОКАЗЫВАЕМ ПОЛНОЕ ИЗОБРАЖЕНИЕ */}
+        <div className="flex-1 relative bg-gradient-to-br from-gray-50 to-gray-100 min-h-[50vh] sm:min-h-[55vh] md:min-h-[65vh] lg:min-h-[70vh] xl:min-h-[75vh]">
           {images.length > 0 ? (
             <>
               <div 
-                className="relative w-full h-full cursor-pointer md:cursor-default"
+                className="relative w-full h-full cursor-pointer md:cursor-default p-4"
                 onClick={() => setIsGalleryOpen(true)}
               >
-                <SafeImage
-                  src={images[selectedImageIndex] || '/placeholder.jpg'}
-                  alt={product.name}
-                  fill
-                  className="object-cover object-center hover:scale-105 transition-transform duration-300"
-                  priority
-                />
+                <div className="relative w-full h-full bg-white rounded-lg shadow-sm overflow-hidden">
+                  <SafeImage
+                    src={images[selectedImageIndex] || '/placeholder.jpg'}
+                    alt={product.name}
+                    fill
+                    className="object-contain hover:scale-105 transition-transform duration-300 p-2"
+                    priority
+                  />
+                </div>
                 
                 {/* Mobile tap indicator - улучшенный дизайн */}
                 <div className="md:hidden absolute bottom-2 right-2 z-10">
