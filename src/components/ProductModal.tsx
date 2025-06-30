@@ -105,33 +105,17 @@ export default function ProductModal({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose, onNavigate])
 
-  // 🔒 УМНАЯ блокировка скролла - блокируем фон, разрешаем модалку
+  // 🔒 ПРОСТАЯ И ЭФФЕКТИВНАЯ блокировка - только body, модалка свободна
   useEffect(() => {
     if (isOpen) {
       // Сохраняем текущее положение скролла
       const scrollY = window.scrollY
       
-      // Блокируем скролл body
+      // Блокируем только body скролл
       document.body.style.overflow = 'hidden'
       document.body.style.position = 'fixed'
       document.body.style.top = `-${scrollY}px`
       document.body.style.width = '100%'
-      
-      // УМНАЯ блокировка touchmove - только если касание НЕ внутри модалки
-      const preventBackgroundTouch = (e: TouchEvent) => {
-        const target = e.target as HTMLElement
-        const modal = modalRef.current
-        
-        // Если касание внутри модалки - разрешаем
-        if (modal && modal.contains(target)) {
-          return
-        }
-        
-        // Если касание вне модалки - блокируем
-        e.preventDefault()
-      }
-      
-      document.addEventListener('touchmove', preventBackgroundTouch, { passive: false })
       
       return () => {
         // Восстанавливаем скролл
@@ -144,14 +128,14 @@ export default function ProductModal({
         
         // Возвращаем позицию скролла
         window.scrollTo(0, parseInt(scrollY || '0') * -1)
-        
-        // Убираем блокировку touchmove
-        document.removeEventListener('touchmove', preventBackgroundTouch)
       }
     }
   }, [isOpen])
 
-  // ✅ Touch handlers больше не нужны - логика в умном preventDefault выше
+  // 🛡️ Простой handler для backdrop - блокируем касания вне модалки
+  const handleBackdropTouch = (e: React.TouchEvent) => {
+    e.preventDefault()
+  }
 
   if (!isOpen || !product) return null
 
@@ -215,6 +199,7 @@ export default function ProductModal({
       <div 
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
+        onTouchMove={handleBackdropTouch}
       />
       
               {/* Modal - оптимизированный для всех экранов */}
