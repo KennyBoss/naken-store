@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const path = require('path');
-const { generateSEOData } = require('../src/lib/seo-boost');
+const { generateSEOData } = require('./seo-boost');
 
 const prisma = new PrismaClient();
 
