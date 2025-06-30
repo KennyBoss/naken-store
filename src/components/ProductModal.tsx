@@ -105,37 +105,18 @@ export default function ProductModal({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose, onNavigate])
 
-  // 🔒 ПРОСТАЯ И ЭФФЕКТИВНАЯ блокировка - только body, модалка свободна
+  // 🔒 МИНИМАЛЬНАЯ блокировка - только overflow на body
   useEffect(() => {
     if (isOpen) {
-      // Сохраняем текущее положение скролла
-      const scrollY = window.scrollY
-      
-      // Блокируем только body скролл
       document.body.style.overflow = 'hidden'
-      document.body.style.position = 'fixed'
-      document.body.style.top = `-${scrollY}px`
-      document.body.style.width = '100%'
       
       return () => {
-        // Восстанавливаем скролл
-        const body = document.body
-        const scrollY = body.style.top
-        body.style.overflow = ''
-        body.style.position = ''
-        body.style.top = ''
-        body.style.width = ''
-        
-        // Возвращаем позицию скролла
-        window.scrollTo(0, parseInt(scrollY || '0') * -1)
+        document.body.style.overflow = ''
       }
     }
   }, [isOpen])
 
-  // 🛡️ Простой handler для backdrop - блокируем касания вне модалки
-  const handleBackdropTouch = (e: React.TouchEvent) => {
-    e.preventDefault()
-  }
+  // ✅ Убираем все touch handlers - оставляем только CSS блокировку
 
   if (!isOpen || !product) return null
 
@@ -199,7 +180,6 @@ export default function ProductModal({
       <div 
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
-        onTouchMove={handleBackdropTouch}
       />
       
               {/* Modal - оптимизированный для всех экранов */}
@@ -277,7 +257,7 @@ export default function ProductModal({
         </div>
 
         {/* Right Side - Details - адаптивная ширина */}
-        <div className="w-full md:w-[400px] lg:w-[450px] xl:w-[500px] flex flex-col bg-white">
+        <div className="w-full md:w-[400px] lg:w-[450px] xl:w-[500px] flex flex-col bg-white overflow-y-auto" style={{ touchAction: 'pan-y' }}>
           {/* Header - оптимизированные размеры текста */}
           <div className="p-3 sm:p-4 md:p-6 border-b border-gray-200">
             <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-gray-900 mb-2 sm:mb-3 leading-tight">{name}</h1>
@@ -288,7 +268,7 @@ export default function ProductModal({
           </div>
 
           {/* Content - оптимизированные отступы и размеры */}
-          <div className="flex-1 p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 overflow-y-auto">
+          <div className="flex-1 p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 overflow-y-auto" style={{ touchAction: 'pan-y' }}>
             {/* Description */}
             {description && (
               <div>
