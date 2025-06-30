@@ -4,27 +4,26 @@ import { prisma } from '@/lib/prisma'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://naken.store'
   
-  // Для локальной разработки возвращаем только статические страницы
   let products: any[] = []
   
   try {
-    // Получаем все опубликованные товары только в продакшене
-    if (process.env.NODE_ENV === 'production') {
-      products = await prisma.product.findMany({
-        where: {
-          published: true,
-          slug: {
-            not: null
-          }
-        },
-        select: {
-          slug: true,
-          updatedAt: true,
+    // Получаем все опубликованные товары
+    products = await prisma.product.findMany({
+      where: {
+        published: true,
+        slug: {
+          not: null
         }
-      })
-    }
+      },
+      select: {
+        slug: true,
+        updatedAt: true,
+      },
+      take: 1000 // Ограничиваем количество для Яндекса
+    })
   } catch (error) {
-    console.log('Database unavailable, using static sitemap only')
+    console.error('Sitemap: Database error -', error)
+    // В случае ошибки БД возвращаем только статические страницы
     products = []
   }
 
