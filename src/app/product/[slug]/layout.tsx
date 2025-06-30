@@ -71,16 +71,17 @@ export async function generateMetadata({ params }: ProductLayoutProps): Promise<
       ? (images[0].startsWith('http') ? images[0] : `${baseUrl}${images[0]}`)
       : `${baseUrl}/placeholder.png`
 
-    // Улучшенный title с размерами и ценой
-    const titleParts = [product.name]
-    if (sizes.length > 0) {
-      titleParts.push(`размеры ${sizes.slice(0, 3).join(', ')}`)
-    }
-
-    const title = `${titleParts.join(' | ')} | NAKEN Store`
+    // 🚀 Используем SEO-оптимизированный title или генерируем автоматически
+    const optimizedTitle = product.seoTitle || (() => {
+      const titleParts = [product.name]
+      if (sizes.length > 0) {
+        titleParts.push(`размеры ${sizes.slice(0, 3).join(', ')}`)
+      }
+      return `${titleParts.join(' | ')} | NAKEN Store`
+    })()
 
     return {
-      title: title.length > 60 ? `${product.name} | NAKEN Store` : title,
+      title: optimizedTitle.length > 60 ? `${product.name} | NAKEN Store` : optimizedTitle,
       description: seoDescription,
       keywords,
               openGraph: {

@@ -42,7 +42,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
 export async function POST(request: NextRequest) {
   try {
     console.log('🔧 ЭКСТРЕННЫЙ UPLOAD API - без sharp обработки')
-    
+
     const data = await request.formData()
     const file: File | null = data.get('file') as unknown as File
 
@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes)
 
     // Генерируем простое имя файла
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(2, 15)
+      const timestamp = Date.now()
+      const randomString = Math.random().toString(36).substring(2, 15)
     const fileExtension = file.name.split('.').pop() || 'jpg'
     const fileName = `${timestamp}-${randomString}.${fileExtension}`
 
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       )
     }
-
+    
     const filePath = join(uploadsDir, fileName)
     
     // Сохраняем файл БЕЗ ОБРАБОТКИ

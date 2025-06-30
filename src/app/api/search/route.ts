@@ -12,14 +12,13 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const isPostgres = process.env.DATABASE_URL?.startsWith('postgres')
-    
+    // 🚀 Простой поиск без регистрочувствительности (работает для SQLite)
     const where: Prisma.ProductWhereInput = {
       published: true,
       OR: [
-        { name: { contains: searchTerm, mode: isPostgres ? 'insensitive' : 'default' } },
-        { description: { contains: searchTerm, mode: isPostgres ? 'insensitive' : 'default' } },
-        { sku: { contains: searchTerm, mode: isPostgres ? 'insensitive' : 'default' } },
+        { name: { contains: searchTerm } },
+        { description: { contains: searchTerm } },
+        { sku: { contains: searchTerm } },
       ],
     }
 

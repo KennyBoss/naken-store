@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -125,6 +125,13 @@ model Product {
   name        String
   slug        String?  @unique // SEO-friendly URL
   description String?
+  
+  // 🚀 SEO поля для продвижения
+  seoTitle    String?  // Оптимизированный title для поисковых систем
+  seoKeywords String?  // Ключевые слова через запятую
+  faq         String?  // JSON массив FAQ вопросов-ответов
+  views       Int      @default(0) // Количество просмотров товара
+  
   price       Float
   salePrice   Float?
   sku         String   @unique
@@ -375,7 +382,7 @@ model ChatSession {
   // Метаданные
   clientInfo  String?     // JSON с информацией о клиенте (браузер, IP и т.д.)
   source      String      @default("website") // website, telegram, whatsapp
-  tags        String[]    @default([]) // Теги для категоризации
+  tags        String      @default("[]") // Теги для категоризации (JSON массив)
   
   // Временные метки
   createdAt   DateTime    @default(now())

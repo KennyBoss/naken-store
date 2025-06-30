@@ -63,6 +63,11 @@ export type ProductWithSizeColor = Product & {
   sizes: (ProductSize & { size: Size })[]
   color: Color | null
   slug: string
+  // 🚀 SEO поля для продвижения
+  seoTitle?: string | null
+  seoKeywords?: string | null
+  faq?: string | null
+  views: number
 }
 
 export type CartItemWithProduct = {

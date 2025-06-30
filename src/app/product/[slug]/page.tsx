@@ -37,6 +37,10 @@ export default function ProductPage() {
         if (response.ok) {
           const data = await response.json()
           setProduct(data)
+          
+          // 🚀 Трекинг просмотра для SEO аналитики
+          fetch(`/api/products/${params.slug}/view`, { method: 'POST' })
+            .catch(() => {}) // Не критично если не получится
         } else {
           router.push('/404')
         }
@@ -310,6 +314,35 @@ export default function ProductPage() {
             </div>
           </div>
         </div>
+
+        {/* FAQ Section - важно для Featured Snippets */}
+        {product.faq && (() => {
+          try {
+            const faqs = JSON.parse(product.faq)
+            if (faqs.length > 0) {
+              return (
+                <div className="mt-8 sm:mt-12 lg:mt-16">
+                  <h2 className="text-xl sm:text-2xl font-medium mb-4 sm:mb-6">Часто задаваемые вопросы</h2>
+                  <div className="space-y-4">
+                    {faqs.map((faq: { question: string; answer: string }, index: number) => (
+                      <details key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                        <summary className="cursor-pointer font-medium text-sm sm:text-base">
+                          {faq.question}
+                        </summary>
+                        <p className="mt-3 text-gray-600 text-sm sm:text-base leading-relaxed">
+                          {faq.answer}
+                        </p>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+          } catch (e) {
+            return null
+          }
+          return null
+        })()}
 
         {/* Reviews Section */}
         <div className="mt-8 sm:mt-12 lg:mt-16">
