@@ -11,7 +11,7 @@ import SessionProviderWrapper from '@/components/SessionProviderWrapper'
 // import { Toaster } from 'react-hot-toast' // Убираем в пользу кастомного Toast
 import { OrganizationJsonLd, WebsiteJsonLd } from '@/components/JsonLd'
 import JsonLdOrganization from '@/components/JsonLdOrganization'
-import TrackingPixelsStatic from '@/components/TrackingPixelsStatic'
+import TrackingPixels from '@/components/TrackingPixels'
 import YandexMetrika from '@/components/YandexMetrika'
 import CookieConsent from '@/components/CookieConsent'
 import OnlineChat from '@/components/OnlineChat'
@@ -115,6 +115,11 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#14b8a6" />
         <meta name="theme-color" content="#14b8a6" />
         
+        {/* Динамические пиксели для HEAD */}
+        <Suspense fallback={null}>
+          <TrackingPixels placement="HEAD" />
+        </Suspense>
+        
         {/* 🚀 LCP КРИТИЧНО: Critical CSS inline для первого экрана */}
         <style>{`
           html{scroll-behavior:smooth}
@@ -134,6 +139,11 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${robotoMono.variable} antialiased bg-gray-50 min-h-screen`}
       >
+        {/* Динамические пиксели для BODY_START */}
+        <Suspense fallback={null}>
+          <TrackingPixels placement="BODY_START" />
+        </Suspense>
+
         {/* 🚀 LCP: минимум блокирующих компонентов в начале body */}
         
         <SessionProviderWrapper>
@@ -165,16 +175,9 @@ export default function RootLayout({
           <YandexMetrika />
         </Suspense>
         
+        {/* Динамические пиксели для BODY_END */}
         <Suspense fallback={null}>
-          <TrackingPixelsStatic placement="HEAD" />
-        </Suspense>
-        
-        <Suspense fallback={null}>
-          <TrackingPixelsStatic placement="BODY_START" />
-        </Suspense>
-        
-        <Suspense fallback={null}>
-          <TrackingPixelsStatic placement="BODY_END" />
+          <TrackingPixels placement="BODY_END" />
         </Suspense>
       </body>
     </html>
