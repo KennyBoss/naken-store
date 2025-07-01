@@ -127,26 +127,16 @@ export default async function TrackingPixels({ placement }: TrackingPixelsProps)
   return (
     <>
       {pixels.map((pixel) => {
-        // Обработка CUSTOM_HTML
+        // Обработка CUSTOM_HTML. Теперь только для BODY, т.к. HEAD обрабатывается в generateMetadata
         if (pixel.type === 'CUSTOM_HTML') {
           if (!pixel.code) return null
 
-          // Для HEAD, предполагаем, что это скрипт или тег, который можно вставить.
-          // Оборачиваем в Script, чтобы Next.js правильно его обработал.
-          // Это не сработает для <meta>, но сработает для верификационных скриптов.
-          if (placement === 'HEAD') {
-            return (
-              <Script
-                key={pixel.id}
-                id={`tracking-pixel-${pixel.id}`}
-                strategy="afterInteractive"
-                dangerouslySetInnerHTML={{ __html: pixel.code }}
-              />
-            )
+          // Для BODY, вставляем как есть в div. Подойдет для виджетов.
+          if (placement === 'BODY_START' || placement === 'BODY_END') {
+             return <div key={pixel.id} dangerouslySetInnerHTML={{ __html: pixel.code }} />
           }
           
-          // Для BODY, вставляем как есть в div. Подойдет для виджетов.
-          return <div key={pixel.id} dangerouslySetInnerHTML={{ __html: pixel.code }} />
+          return null // Не рендерим CUSTOM_HTML для HEAD здесь
         }
 
         // Обработка остальных пикселей

@@ -16,6 +16,7 @@ import YandexMetrika from '@/components/YandexMetrika'
 import CookieConsent from '@/components/CookieConsent'
 import OnlineChat from '@/components/OnlineChat'
 import { getSiteSettings } from '@/lib/site-settings'
+import { prisma } from '@/lib/db' // 👈 Импортируем Prisma
 
 // 🚀 LCP КРИТИЧНО: агрессивная оптимизация шрифтов!
 const inter = Inter({
@@ -34,10 +35,45 @@ const robotoMono = Roboto_Mono({
   weight: ['400'], // Только один вес
 });
 
+// Функция для парсинга мета-тегов из HTML строки
+const parseMetaTags = (htmlString: string): Record<string, string> => {
+  const metaTags: Record<string, string> = {};
+  // Ищем все мета-теги с атрибутами name и content
+  const regex = /<meta\s+name="([^"]+)"\s+content="([^"]+)"\s*\/?>/g;
+  let match;
+  while ((match = regex.exec(htmlString)) !== null) {
+    // match[1] - это значение атрибута name
+    // match[2] - это значение атрибута content
+    metaTags[match[1]] = match[2];
+  }
+  return metaTags;
+};
+
 // Динамическое генерирование метаданных на основе настроек сайта
 export async function generateMetadata(): Promise<Metadata> {
   const siteSettings = await getSiteSettings()
   
+  // Получаем кастомные мета-теги из БД
+  let customMetaTags: Record<string, string> = {};
+  try {
+    const customPixels = await prisma.trackingPixel.findMany({
+      where: {
+        isActive: true,
+        placement: 'HEAD',
+        type: 'CUSTOM_HTML',
+      },
+    });
+    
+    for (const pixel of customPixels) {
+      if (pixel.code) {
+        const parsedTags = parseMetaTags(pixel.code);
+        customMetaTags = { ...customMetaTags, ...parsedTags };
+      }
+    }
+  } catch (error) {
+    console.error("Ошибка загрузки кастомных мета-тегов:", error);
+  }
+
   return {
     metadataBase: new URL('https://naken.store'),
     title: siteSettings.site_title,
@@ -59,7 +95,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     verification: {
       google: "KhjyTp6qCAxl2YEKLtdtPl3UaT2Cn6AUwFWKWU_IkRg",
-      // yandex: "yandex-verification-code"
+      // yandex: "yandex-verification-code",
+      // Добавляем кастомные теги верификации
+      other: customMetaTags,
     },
     alternates: {
       canonical: 'https://naken.store',
