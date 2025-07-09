@@ -23,15 +23,11 @@ export default function ImageGallery({
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
-  // ИСПРАВЛЕНО: обрабатываем локальные пути uploads
+  // ИСПРАВЛЕНО: оставляем локальные пути как есть для nginx
   const getImageSrc = (originalSrc: string) => {
     if (!originalSrc) return '/placeholder.jpg'
     
-    // Если путь начинается с /uploads/, добавляем полный URL
-    if (originalSrc.startsWith('/uploads/')) {
-      return `https://naken.store${originalSrc}`
-    }
-    
+    // Оставляем пути как есть - nginx должен обслуживать /uploads/ статично
     return originalSrc
   }
 
