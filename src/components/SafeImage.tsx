@@ -37,7 +37,13 @@ export default function SafeImage({
     
     // Если путь начинается с /uploads/, добавляем полный URL
     if (originalSrc.startsWith('/uploads/')) {
-      return `https://naken.store${originalSrc}`
+      const fullUrl = `https://naken.store${originalSrc}`
+      // 🐛 ДЕБАГ: проверяем преобразование URL
+      console.log('🔄 SafeImage URL преобразование:', {
+        original: originalSrc,
+        converted: fullUrl
+      })
+      return fullUrl
     }
     
     return originalSrc

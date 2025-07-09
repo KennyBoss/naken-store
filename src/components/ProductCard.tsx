@@ -50,7 +50,15 @@ export default function ProductCard({
   let productImages: string[] = []
   try {
     productImages = JSON.parse(images || '[]')
+    // 🐛 ДЕБАГ: проверяем что парсится
+    console.log('🖼️ ProductCard дебаг:', {
+      productName: name,
+      rawImages: images,
+      parsedImages: productImages,
+      firstImage: productImages[0]
+    })
   } catch (e) {
+    console.error('❌ Ошибка парсинга изображений:', e, 'для товара:', name, 'images:', images)
     productImages = []
   }
 
@@ -61,6 +69,9 @@ export default function ProductCard({
   // 🚀 ПРИОРИТЕТНАЯ ЗАГРУЗКА: первое изображение всегда показываем первым
   const primaryImage = productImages[0] || '/placeholder.jpg'
   const isMainProduct = productImages.length > 0 // Определяем основной товар по наличию изображений
+
+  // 🐛 ДЕБАГ: проверяем финальный URL
+  console.log('🎯 Финальное изображение для', name, ':', primaryImage)
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault()
