@@ -31,8 +31,22 @@ export default function SafeImage({
   const [useNativeImg, setUseNativeImg] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
+  // ИСПРАВЛЕНО: обрабатываем локальные пути uploads
+  const getImageSrc = (originalSrc: string) => {
+    if (!originalSrc) return '/placeholder.jpg'
+    
+    // Если путь начинается с /uploads/, добавляем полный URL
+    if (originalSrc.startsWith('/uploads/')) {
+      return `https://naken.store${originalSrc}`
+    }
+    
+    return originalSrc
+  }
+
+  const imageSrc = getImageSrc(src)
+
   // Если src начинается с http/https или это base64, используем обычный img
-  const isExternalUrl = src?.startsWith('http://') || src?.startsWith('https://') || src?.startsWith('data:')
+  const isExternalUrl = imageSrc?.startsWith('http://') || imageSrc?.startsWith('https://') || imageSrc?.startsWith('data:')
   
   // Функция для обработки ошибок загрузки
   const handleError = () => {
@@ -48,7 +62,7 @@ export default function SafeImage({
   if (useNativeImg || isExternalUrl) {
     return (
       <img
-        src={src || '/placeholder.jpg'}
+        src={imageSrc || '/placeholder.jpg'}
         alt={alt}
         className={className}
         style={style}
@@ -68,7 +82,7 @@ export default function SafeImage({
           <div className="absolute inset-0 bg-gray-100 animate-pulse" />
         )}
         <Image
-          src={src || '/placeholder.jpg'}
+          src={imageSrc || '/placeholder.jpg'}
           alt={alt}
           fill
           sizes={sizes}
@@ -94,7 +108,7 @@ export default function SafeImage({
           />
         )}
         <Image
-          src={src || '/placeholder.jpg'}
+          src={imageSrc || '/placeholder.jpg'}
           alt={alt}
           width={width}
           height={height}
@@ -112,7 +126,7 @@ export default function SafeImage({
   // Если нет размеров, используем обычный img
   return (
     <img
-      src={src || '/placeholder.jpg'}
+      src={imageSrc || '/placeholder.jpg'}
       alt={alt}
       className={className}
       style={style}

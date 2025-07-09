@@ -10,7 +10,7 @@ const nextConfig = {
   output: 'standalone',
   outputFileTracingRoot: path.join(__dirname, './'),
   
-  // Настройки изображений - ЕДИНАЯ СЕКЦИЯ
+  // Настройки изображений - ИСПРАВЛЕНО для uploads
   images: {
     remotePatterns: [
       {
@@ -29,8 +29,8 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920], // Размеры под устройства
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384], // Размеры для layout="intrinsic"
     minimumCacheTTL: 86400, // Кеш на 24 часа
-    // Разрешаем загрузку с любых доменов (для placeholder.jpg)
-    unoptimized: true,
+    // ИСПРАВЛЕНО: убираем unoptimized для работы изображений
+    // unoptimized: true,
   },
   
   // Минимальные оптимизации без увеличения bundle size

@@ -23,6 +23,18 @@ export default function ImageGallery({
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
+  // ИСПРАВЛЕНО: обрабатываем локальные пути uploads
+  const getImageSrc = (originalSrc: string) => {
+    if (!originalSrc) return '/placeholder.jpg'
+    
+    // Если путь начинается с /uploads/, добавляем полный URL
+    if (originalSrc.startsWith('/uploads/')) {
+      return `https://naken.store${originalSrc}`
+    }
+    
+    return originalSrc
+  }
+
   // Обновляем текущий индекс когда меняется начальный
   useEffect(() => {
     setCurrentIndex(initialIndex)
@@ -102,6 +114,8 @@ export default function ImageGallery({
 
   if (!isOpen || images.length === 0) return null
 
+  const currentImageSrc = getImageSrc(images[currentIndex])
+
   return (
     <div className="fixed inset-0 z-[60] bg-black">
       {/* Header */}
@@ -130,7 +144,7 @@ export default function ImageGallery({
         onTouchEnd={handleTouchEnd}
       >
         <Image
-          src={images[currentIndex] || '/api/placeholder/800/800'}
+          src={currentImageSrc}
           alt={`${productName} - фото ${currentIndex + 1}`}
           fill
           sizes="100vw"
@@ -140,7 +154,7 @@ export default function ImageGallery({
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           className="object-contain"
           onError={(e) => {
-            console.log('🖼️ Ошибка загрузки изображения в галерее:', images[currentIndex])
+            console.log('🖼️ Ошибка загрузки изображения в галерее:', currentImageSrc)
             const target = e.target as HTMLImageElement;
             target.style.display = 'none';
           }}
