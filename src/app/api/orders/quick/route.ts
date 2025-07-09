@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { telegramBot } from '@/lib/telegram'
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,6 +67,27 @@ export async function POST(request: NextRequest) {
         status: 'PENDING',
       }
     })
+
+    // 🚀 TELEGRAM УВЕДОМЛЕНИЕ: отправляем уведомление о быстром заказе
+    try {
+      await telegramBot.sendOrderNotification({
+        orderNumber: order.orderNumber,
+        customerName: customerName,
+        customerPhone: customerPhone,
+        total: 0, // Быстрый заказ без указания суммы
+        items: [{
+          productName: 'Быстрый заказ (товары не указаны)',
+          quantity: 1,
+          price: 0
+        }],
+        address: customerAddress,
+        paymentMethod: 'Не указан',
+        shippingMethod: 'Не указан'
+      })
+    } catch (telegramError) {
+      console.error('❌ Ошибка отправки Telegram уведомления о быстром заказе:', telegramError)
+      // Не прерываем создание заказа из-за ошибки Telegram
+    }
 
     // В реальном приложении здесь можно:
     // 1. Отправить SMS или уведомление менеджеру

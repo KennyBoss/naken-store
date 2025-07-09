@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { sendEmail } from '@/lib/email'
 import { emailTemplates } from '@/lib/email-templates'
+import { telegramBot } from '@/lib/telegram'
 
 // PATCH /api/orders/[id]/status - Обновить статус заказа (только админ)
 export async function PATCH(
@@ -52,6 +53,21 @@ export async function PATCH(
       )
     }
 
+    // Получаем текущий заказ для сравнения статуса
+    const currentOrder = await prisma.order.findUnique({
+      where: { id },
+      select: { status: true, orderNumber: true }
+    })
+
+    if (!currentOrder) {
+      return NextResponse.json(
+        { error: 'Заказ не найден' },
+        { status: 404 }
+      )
+    }
+
+    const oldStatus = currentOrder.status
+
     // Обновляем заказ
     const order = await prisma.order.update({
       where: { id },
@@ -68,6 +84,22 @@ export async function PATCH(
         shippingAddress: true
       }
     })
+
+    // 🚀 TELEGRAM УВЕДОМЛЕНИЕ: отправляем уведомление об изменении статуса
+    try {
+      // Отправляем уведомление только если статус действительно изменился
+      if (oldStatus !== status) {
+        await telegramBot.sendOrderStatusNotification(
+          order.orderNumber, 
+          oldStatus, 
+          status, 
+          order.user?.name || 'Неизвестный клиент'
+        )
+      }
+    } catch (telegramError) {
+      console.error('❌ Ошибка отправки Telegram уведомления о статусе:', telegramError)
+      // Не прерываем обновление статуса из-за ошибки Telegram
+    }
 
     // 📧 Отправляем email уведомление о смене статуса
     try {

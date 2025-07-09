@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { telegramBot } from '@/lib/telegram'
 
 // Отправка сообщения
 export async function POST(request: NextRequest) {
@@ -32,9 +33,13 @@ export async function POST(request: NextRequest) {
 
     // Определяем тип отправителя
     let senderType = 'USER'
+    let isFromUser = true
     if (session?.user?.role === 'ADMIN') {
       senderType = 'ADMIN'
+      isFromUser = false
     }
+
+    const senderName = session?.user?.name || 'Анонимный пользователь'
 
     // Создаем сообщение
     const message = await prisma.chatMessage.create({
@@ -43,7 +48,7 @@ export async function POST(request: NextRequest) {
         sessionId: chatSession.id,
         senderId: session?.user?.id || null,
         senderType: senderType as any,
-        senderName: session?.user?.name || 'Анонимный пользователь',
+        senderName: senderName,
         messageType: messageType as any,
         attachments: attachments ? JSON.stringify(attachments) : null
       },
@@ -62,6 +67,23 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date()
       }
     })
+
+    // 🚀 TELEGRAM УВЕДОМЛЕНИЕ: отправляем уведомление о новом сообщении
+    try {
+      // Отправляем уведомление только если это не системное сообщение
+      if (messageType !== 'SYSTEM') {
+        await telegramBot.sendChatNotification({
+          sessionId: chatSession.sessionId,
+          senderName: senderName,
+          message: content.trim(),
+          isFromUser: isFromUser,
+          timestamp: new Date()
+        })
+      }
+    } catch (telegramError) {
+      console.error('❌ Ошибка отправки Telegram уведомления:', telegramError)
+      // Не прерываем создание сообщения из-за ошибки Telegram
+    }
 
     return NextResponse.json({
       success: true,

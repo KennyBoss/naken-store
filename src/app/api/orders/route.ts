@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { sendEmail } from '@/lib/email'
 import { emailTemplates } from '@/lib/email-templates'
+import { telegramBot } from '@/lib/telegram'
 
 // GET /api/orders - Получить заказы пользователя
 export async function GET(request: NextRequest) {
@@ -100,9 +101,10 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Вычисляем общую стоимость
+    // Вычисляем общую стоимость и подготавливаем товары
     let total = 0
     const orderItems = []
+    const orderItemsForTelegram = []
 
     for (const item of items) {
       const product = await prisma.product.findUnique({
@@ -127,6 +129,13 @@ export async function POST(request: NextRequest) {
         size: item.size || null,
         color: item.color || null
       })
+
+      // Подготавливаем данные для Telegram
+      orderItemsForTelegram.push({
+        productName: product.name,
+        quantity: item.quantity,
+        price: price
+      })
     }
 
     // Добавляем стоимость доставки
@@ -144,18 +153,20 @@ export async function POST(request: NextRequest) {
         shippingAddressId: addressRecord.id,
         status: 'PENDING',
         total,
-
         items: {
           create: orderItems
         }
       },
-              include: {
+      include: {
         items: {
           include: {
             product: true
           }
         },
-        shippingAddress: true
+        shippingAddress: true,
+        user: {
+          select: { name: true, email: true, phone: true }
+        }
       }
     })
 
@@ -163,6 +174,26 @@ export async function POST(request: NextRequest) {
     await prisma.cartItem.deleteMany({
       where: { userId: session.user.id }
     })
+
+    // 🚀 TELEGRAM УВЕДОМЛЕНИЕ: отправляем уведомление о новом заказе
+    try {
+      const fullAddress = `${addressRecord.street}, ${addressRecord.city}${addressRecord.state ? `, ${addressRecord.state}` : ''}${addressRecord.zipCode ? `, ${addressRecord.zipCode}` : ''}`
+      
+      await telegramBot.sendOrderNotification({
+        orderNumber: order.orderNumber,
+        customerName: order.user?.name || 'Неизвестный клиент',
+        customerPhone: order.user?.phone || undefined,
+        customerEmail: order.user?.email || undefined,
+        total: order.total,
+        items: orderItemsForTelegram,
+        address: fullAddress,
+        paymentMethod: paymentMethod || undefined,
+        shippingMethod: shippingMethod === 'express' ? 'Экспресс доставка' : 'Обычная доставка'
+      })
+    } catch (telegramError) {
+      console.error('❌ Ошибка отправки Telegram уведомления о заказе:', telegramError)
+      // Не прерываем создание заказа из-за ошибки Telegram
+    }
 
     // 📧 Email подтверждения будет отправлен после успешной оплаты через webhook
     console.log(`📋 Заказ ${orderNumber} создан, ожидает оплаты...`)

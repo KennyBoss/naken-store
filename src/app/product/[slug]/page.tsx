@@ -121,7 +121,7 @@ export default function ProductPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       {/* JSON-LD структурированные данные для SEO */}
       <ProductJsonLd product={{
         id: product.id,
@@ -141,7 +141,7 @@ export default function ProductPage() {
       {/* GEO оптимизированная Schema.org разметка для ИИ */}
       <JsonLdProduct product={product} />
       
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <button
           onClick={() => router.back()}
@@ -161,9 +161,9 @@ export default function ProductPage() {
                 alt={product.name}
                 fill
                 className="object-contain bg-white"
-                priority
+                priority={selectedImageIndex === 0} // 🚀 ПРИОРИТЕТ: только для первого изображения
+                quality={selectedImageIndex === 0 ? 95 : 85} // 🚀 Высокое качество для главного изображения
               />
-
             </div>
 
             {/* Thumbnail Images */}
@@ -184,6 +184,8 @@ export default function ProductPage() {
                       alt={`${product.name} ${index + 1}`}
                       fill
                       className="object-contain bg-gray-50"
+                      priority={index === 0} // 🚀 ПРИОРИТЕТ: только для первого thumbnail
+                      quality={80}
                     />
                   </button>
                 ))}

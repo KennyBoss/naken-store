@@ -13,7 +13,8 @@ import {
   Plus,
   Eye,
   Settings,
-  Code
+  Code,
+  Send
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -134,15 +135,16 @@ export default function AdminDashboard() {
             </div>
           </Link>
 
+          {/* 🚀 НОВАЯ КАРТОЧКА TELEGRAM */}
           <Link
-            href="/admin/analytics"
-            className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border-l-4 border-purple-500"
+            href="/admin/telegram"
+            className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border-l-4 border-blue-600"
           >
             <div className="flex items-center">
-              <BarChart3 className="h-8 w-8 text-purple-500" />
+              <Send className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Просмотр</p>
-                <p className="text-lg font-semibold text-gray-900">Аналитика</p>
+                <p className="text-sm font-medium text-gray-600">Настройка</p>
+                <p className="text-lg font-semibold text-gray-900">Telegram</p>
               </div>
             </div>
           </Link>

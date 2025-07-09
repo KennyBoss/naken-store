@@ -1,48 +1,39 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Upload, X, Loader2, GripVertical } from 'lucide-react'
+import Image from 'next/image'
 
 interface ImageUploadProps {
   images: string[]
   onImagesChange: (images: string[]) => void
   maxImages?: number
-  keepAspectRatio?: boolean  // Новый параметр для сохранения пропорций
+  keepAspectRatio?: boolean
 }
 
 export default function ImageUpload({ 
   images, 
   onImagesChange, 
   maxImages = 10,
-  keepAspectRatio = true  // По умолчанию сохраняем пропорции для товаров
+  keepAspectRatio = true
 }: ImageUploadProps) {
-  const [isDragging, setIsDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
-    setIsDragging(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    
     const files = Array.from(e.dataTransfer.files)
-    handleFiles(files)
-  }, [])
+    if (files.length > 0) {
+      handleFiles(files)
+    }
+  }
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    handleFiles(files)
-  }, [])
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
 
   const handleFiles = async (files: File[]) => {
     // Фильтруем только изображения
@@ -112,131 +103,207 @@ export default function ImageUpload({
     fileInputRef.current?.click()
   }
 
+  // 🔥 НОВЫЕ ФУНКЦИИ ДЛЯ DRAG & DROP СОРТИРОВКИ
+  const handleImageDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleImageDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverIndex(index)
+  }
+
+  const handleImageDragLeave = () => {
+    setDragOverIndex(null)
+  }
+
+  const handleImageDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    
+    if (draggedIndex === null) return
+    
+    const newImages = [...images]
+    const draggedImage = newImages[draggedIndex]
+    
+    // Удаляем перетаскиваемый элемент
+    newImages.splice(draggedIndex, 1)
+    
+    // Вставляем на новое место
+    const insertIndex = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex
+    newImages.splice(insertIndex, 0, draggedImage)
+    
+    onImagesChange(newImages)
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const moveToFirst = (index: number) => {
+    if (index === 0) return
+    
+    const newImages = [...images]
+    const imageToMove = newImages[index]
+    
+    // Удаляем изображение с текущей позиции
+    newImages.splice(index, 1)
+    // Вставляем в начало
+    newImages.unshift(imageToMove)
+    
+    onImagesChange(newImages)
+  }
+
   return (
     <div className="space-y-4">
-      {/* Drag and Drop зона */}
+      {/* Drag & Drop Zone */}
       <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
         onClick={openFileDialog}
-        className={`
-          relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
-          transition-all duration-200 hover:bg-gray-50
-          ${isDragging 
-            ? 'border-blue-500 bg-blue-50' 
-            : 'border-gray-300 hover:border-gray-400'
-          }
-          ${uploading ? 'pointer-events-none opacity-75' : ''}
-        `}
       >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-
-        <div className="flex flex-col items-center space-y-4">
-          {uploading ? (
-            <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />
-          ) : (
-            <Upload className={`h-12 w-12 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />
-          )}
-          
-          <div>
-            <p className="text-lg font-medium text-gray-900">
-              {uploading ? 'Загружаем изображения...' : 'Перетащите изображения сюда'}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              или нажмите для выбора файлов
-            </p>
-            <p className="text-xs text-gray-400 mt-2">
-              JPG, PNG, WebP до 5MB • Максимум {maxImages} изображений
-            </p>
-          </div>
-        </div>
-
-        {/* Прогресс загрузки */}
-        {Object.keys(uploadProgress).length > 0 && (
-          <div className="absolute bottom-4 left-4 right-4">
-            <div className="bg-white rounded-lg p-3 shadow-lg border">
-              <div className="text-xs text-gray-600 mb-2">Загружаем файлы...</div>
-              {Object.entries(uploadProgress).map(([fileId, progress]) => (
-                <div key={fileId} className="mb-1">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+        <p className="text-sm text-gray-600">
+          Перетащите изображения сюда или нажмите для выбора
+        </p>
+        <p className="text-xs text-gray-500 mt-1">
+          Поддерживаются: JPG, PNG, GIF (макс. {maxImages} файлов)
+        </p>
       </div>
 
-      {/* Превью загруженных изображений */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        onChange={(e) => {
+          const files = Array.from(e.target.files || [])
+          handleFiles(files)
+        }}
+        className="hidden"
+      />
+
+      {/* Uploaded Images Grid with Drag & Drop */}
       {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {images.map((image, index) => (
-            <div key={image} className="relative group">
-              <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border">
-                <img
-                  src={image}
-                  alt={`Изображение ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Показываем placeholder если изображение не загрузилось
-                    const target = e.target as HTMLImageElement
-                    target.style.display = 'none'
-                    const placeholder = target.nextElementSibling as HTMLElement
-                    if (placeholder) placeholder.style.display = 'flex'
-                  }}
-                />
-                <div className="hidden w-full h-full bg-gray-200 items-center justify-center">
-                  <ImageIcon className="h-8 w-8 text-gray-400" />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-900">
+              Изображения ({images.length}/{maxImages})
+            </h3>
+            {images.length > 1 && (
+              <p className="text-xs text-gray-500">
+                Перетащите изображения для изменения порядка
+              </p>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {images.map((image, index) => (
+              <div
+                key={`${image}-${index}`}
+                draggable
+                onDragStart={(e) => handleImageDragStart(e, index)}
+                onDragOver={(e) => handleImageDragOver(e, index)}
+                onDragLeave={handleImageDragLeave}
+                onDrop={(e) => handleImageDrop(e, index)}
+                className={`relative group bg-white rounded-lg border-2 transition-all duration-200 ${
+                  index === 0 
+                    ? 'border-green-500 shadow-lg ring-2 ring-green-200' 
+                    : 'border-gray-200 hover:border-gray-300'
+                } ${
+                  dragOverIndex === index 
+                    ? 'border-blue-500 bg-blue-50 scale-105' 
+                    : ''
+                } ${
+                  draggedIndex === index 
+                    ? 'opacity-50 scale-95' 
+                    : ''
+                }`}
+              >
+                {/* Главное изображение индикатор */}
+                {index === 0 && (
+                  <div className="absolute -top-2 -left-2 z-10">
+                    <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                      Главное
+                    </span>
+                  </div>
+                )}
+
+                {/* Drag Handle */}
+                <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="bg-white/80 rounded-md p-1 shadow-sm cursor-move">
+                    <GripVertical size={16} className="text-gray-600" />
+                  </div>
+                </div>
+
+                {/* Image */}
+                <div className="aspect-square overflow-hidden rounded-lg">
+                  <Image
+                    src={image}
+                    alt={`Изображение ${index + 1}`}
+                    width={200}
+                    height={200}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    unoptimized
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                  {index !== 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        moveToFirst(index)
+                      }}
+                      className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-md text-xs font-medium transition-colors"
+                      title="Сделать главным"
+                    >
+                      На первое место
+                    </button>
+                  )}
+                  
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeImage(image)
+                    }}
+                    className="bg-red-500 hover:bg-red-600 text-white p-1 rounded-md transition-colors"
+                    title="Удалить"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {/* Position indicator */}
+                <div className="absolute bottom-2 right-2 bg-white/80 text-gray-800 text-xs font-bold px-2 py-1 rounded-full">
+                  {index + 1}
                 </div>
               </div>
-              
-              {/* Кнопка удаления */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  removeImage(image)
-                }}
-                className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full shadow-lg 
-                          opacity-0 group-hover:opacity-100 transition-opacity duration-200
-                          hover:bg-red-600 focus:opacity-100"
-              >
-                <X size={14} />
-              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
-              {/* Индикатор порядка */}
-              <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white text-xs 
-                            px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                {index + 1}
-              </div>
+      {/* Upload Progress */}
+      {uploading && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Loader2 className="animate-spin h-4 w-4" />
+            <span className="text-sm text-gray-600">Загрузка изображений...</span>
+          </div>
+          {Object.entries(uploadProgress).map(([fileId, progress]) => (
+            <div key={fileId} className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           ))}
         </div>
       )}
-
-      {/* Информация о количестве изображений */}
-      <div className="flex items-center justify-between text-sm text-gray-500">
-        <span>
-          {images.length} из {maxImages} изображений
-        </span>
-        {images.length > 0 && (
-          <span className="text-xs">
-            Первое изображение будет основным
-          </span>
-        )}
-      </div>
     </div>
   )
 } 

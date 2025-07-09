@@ -264,6 +264,50 @@ export default function FeaturedProducts() {
     setSelectedProductId(filteredProducts[newIndex].id)
   }
 
+  // Обработка wishlist
+  const handleWishlistToggle = (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation()
+    e.preventDefault()
+    
+    if (isInWishlist(productId)) {
+      removeFromWishlist(productId)
+      success('Товар удален из избранного')
+    } else {
+      addToWishlist(productId)
+      success('Товар добавлен в избранное')
+    }
+  }
+
+  // 🚀 УЛУЧШЕННАЯ ФУНКЦИЯ ДЛЯ ПРИОРИТЕТНОЙ ЗАГРУЗКИ ПЕРВОГО ФОТО
+  const getImageToDisplay = (productId: string, images: string[], globalIndex: number, isFirstLoad: boolean = false) => {
+    if (images.length === 0) return null
+    
+    // 🔥 ПЕРВОЕ ИЗОБРАЖЕНИЕ ВСЕГДА ЗАГРУЖАЕТСЯ ПЕРВЫМ ПРИ ЗАПУСКЕ САЙТА
+    if (isFirstLoad && globalIndex < 8) {
+      return images[0] // Первые 8 товаров показывают главное изображение
+    }
+    
+    // Для остальных случаев - рандомное изображение
+    if (images.length === 1) return images[0]
+    
+    // Создаем стабильный но меняющийся seed на основе:
+    // 1. ID товара (для стабильности одного товара)
+    // 2. Текущей страницы (чтобы при новых загрузках менялось)
+    // 3. Глобального индекса (чтобы даже одинаковые товары имели разные картинки)
+    let hash = 0
+    const seedString = `${productId}-${page}-${globalIndex}`
+    
+    for (let i = 0; i < seedString.length; i++) {
+      const char = seedString.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    
+    // Превращаем hash в индекс от 0 до images.length-1
+    const randomIndex = Math.abs(hash) % images.length
+    return images[randomIndex]
+  }
+
   return (
     <>
       <section className="py-4 sm:py-8">
@@ -316,9 +360,9 @@ export default function FeaturedProducts() {
                 images = []
               }
               
-              // 🎯 МАГИЯ! Получаем случайное изображение для каждой загрузки
-              const randomImageIndex = getRandomImageIndex(product.id, images, index)
-              const randomImage = images[randomImageIndex] || images[0]
+              // 🚀 НОВАЯ ЛОГИКА: первое фото для начальной загрузки, рандом для остальных
+              const isFirstLoad = page === 1 // Определяем первую загрузку страницы
+              const imageToShow = getImageToDisplay(product.id, images, index, isFirstLoad)
               
               return (
                 <div
@@ -331,36 +375,68 @@ export default function FeaturedProducts() {
                 >
                   {/* Image Container - адаптивная высота */}
                   <div className="relative overflow-hidden rounded-t-xl" style={{ paddingBottom: '133.33%' }}>
-                    {images.length > 0 && randomImage ? (
+                    {images.length > 0 && imageToShow ? (
                       <Image
-                        src={randomImage}
+                        src={imageToShow}
                         alt={product.name || 'Товар'}
                         fill
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         className="object-contain bg-white/50 group-hover:scale-105 transition-transform duration-500"
-                        priority={index < 8} // 🚀 LCP: приоритет для первых 8 изображений  
-                        quality={index < 4 ? 75 : 70} // 🚀 LCP: ниже качество для быстрой загрузки
+                        priority={index < 8 && isFirstLoad} // 🚀 ПРИОРИТЕТ: только для первых 8 товаров при первой загрузке
+                        quality={index < 4 ? 85 : 75} // 🚀 Повышенное качество для главных изображений
                         placeholder="blur"
                         blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-                        onError={() => {
-                          console.log('🖼️ Ошибка загрузки изображения:', randomImage)
-                        }}
+                        loading={index < 8 && isFirstLoad ? "eager" : "lazy"} // 🚀 EAGER загрузка для первых изображений
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 text-xs sm:text-sm font-light">Фото товара</span>
+                      <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <div className="text-4xl">📦</div>
                       </div>
                     )}
-                    
 
+                    {/* Sale Badge */}
+                    {product.salePrice && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                          -{Math.round(((product.price - product.salePrice) / product.price) * 100)}%
+                        </span>
+                      </div>
+                    )}
 
-                    {/* Overlay для цены при наведении - ОБЩИЙ для всех устройств */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="absolute bottom-0 left-0 right-0 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                      <p className="text-white text-base font-light">
-                        {formatPrice(product.price)}
-                      </p>
+                    {/* Quick Actions */}
+                    <div className="absolute top-3 right-3 z-10 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                      <button
+                        onClick={(e) => handleWishlistToggle(e, product.id)}
+                        className={`w-8 h-8 rounded-full backdrop-blur-md border border-white/40 flex items-center justify-center shadow-lg transition-all duration-200 ${
+                          isInWishlist(product.id)
+                            ? 'bg-red-500/90 text-white'
+                            : 'bg-white/30 text-gray-700 hover:bg-white/50'
+                        }`}
+                      >
+                        <BookmarkIcon size={14} className={isInWishlist(product.id) ? 'fill-current' : ''} />
+                      </button>
+                      
+                      <button className="w-8 h-8 rounded-full backdrop-blur-md bg-white/30 border border-white/40 text-gray-700 flex items-center justify-center shadow-lg hover:bg-white/50 transition-all duration-200">
+                        <ShareIcon size={14} />
+                      </button>
                     </div>
+
+                    {/* Stock indicator */}
+                    {product.stock <= 5 && product.stock > 0 && (
+                      <div className="absolute bottom-3 left-3 z-10">
+                        <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-lg">
+                          Осталось: {product.stock}
+                        </span>
+                      </div>
+                    )}
+
+                    {product.stock === 0 && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <span className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium">
+                          Нет в наличии
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Product Info - только название */}
