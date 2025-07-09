@@ -136,8 +136,8 @@ export default withAuth(
           '/api/placeholder',
           '/api/search',
           '/api/reviews',
-          '/api/upload',
-          '/api/uploads'
+          '/api/upload'
+          // 🔧 УДАЛЕН /api/uploads - он не нужен, nginx обслуживает /uploads/ напрямую
         ]
 
         // Проверяем публичные маршруты
